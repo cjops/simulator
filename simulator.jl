@@ -1,13 +1,13 @@
 using DataFrames, CSV, Plots, Distributions
-plotlyjs()
-if (isdefined(:IJulia))
-    IJulia.clear_output()
-end
+#plotlyjs()
+#if (isdefined(:IJulia))
+#    IJulia.clear_output()
+#end
 
 function get_genotypes(num_genotypes)
     #num_genotypes = 2^num_loci
     bits = floor(Int, log2(num_genotypes-1))+1
-    genotypes = [bin(n, bits) for n = 0:num_genotypes-1]
+    genotypes = [string(n, base=2, pad=bits) for n = 0:num_genotypes-1]
     return genotypes
 end
 
@@ -16,7 +16,7 @@ function get_dataset1()
     dataset = []
     for i = 1:3
         df = CSV.read(
-            "table$i.csv",
+            "data/table$i.csv",
             types=Dict(1=>String),
             allowmissing=:none,
             rows=17)
@@ -29,7 +29,7 @@ end
 
 function get_dataset2()
     barlow = CSV.read(
-        "barlow.csv",
+        "data/barlow.csv",
         allowmissing=:none,
         transpose=true,
         types=Dict(1=>String))
@@ -50,7 +50,7 @@ function get_mutational_neighbors(genotypes::Array{String})
             else
                 neighbor[j] = '0'
             end
-            neighbor = findfirst(genotypes, join(neighbor))
+            neighbor = findfirst(genotypes .== join(neighbor))
             push!(neighbors, neighbor)
         end
         push!(all_neighbors, neighbors)
@@ -74,7 +74,7 @@ function mutation!(r, N, P_m, mutational_neighbors)
         # sample from a Poisson distribution
         num_mutants = rand(Poisson(avg_num_mutants))
         for m = 1:num_mutants
-            N[mutational_neighbors[i, rand(1:end)]] += 1
+            N[mutational_neighbors[i][rand(1:end)]] += 1
         end
         N[i] -= num_mutants
     end
@@ -106,18 +106,18 @@ function run_simulation(
     ordering = get_genotypes(length(landscape))
     mutational_neighbors = get_mutational_neighbors(ordering)
     if typeof(seed) == String
-        seed = findfirst(ordering, seed)
+        seed = findfirst(ordering .== seed)
     end
     if isempty(population)
         population=zeros(Int64, length(landscape))
         population[seed] = K
     end
-    optimal = indmax(landscape) # index of globally optimum genotype
-    dominant = indmax(population) # index of currently dominant genotype
+    optimal = argmax(landscape) # index of globally optimum genotype
+    dominant = argmax(population) # index of currently dominant genotype
     T_1 = 0 # time of first appearance of optimal genotype
     T_d = 0 # time to dominance
     T_f = 0 # time to fixation
-    trace = Array{Int64}(t, length(population))
+    trace = Array{Int64}(undef, t, length(population))
     trace[1,:] = population # first timestep is the starting population
     trajectory = [dominant] # a potential trajectory
     if seed == optimal
@@ -132,8 +132,8 @@ function run_simulation(
         trace[t,:] = population #copy final population to the trace
 
         # check for a change in the dominant genotype
-        if indmax(population) != dominant
-            dominant = indmax(population)
+        if argmax(population) != dominant
+            dominant = argmax(population)
             push!(trajectory, dominant)
         end
 
@@ -184,7 +184,7 @@ function run_simulation(
         append!(trajectory, newtraj)
         tempcrit = []
         for i in eachindex(criticaltimes)
-            if criticaltimes[i] == 0 && newcrit[i] != 0 && indmax(landscape) == indmax(landscapes[1][1])
+            if criticaltimes[i] == 0 && newcrit[i] != 0 && argmax(landscape) == argmax(landscapes[1][1])
                 push!(tempcrit, tsofar + newcrit[i])
             else
                 push!(tempcrit, criticaltimes[i])
@@ -208,14 +208,14 @@ function plot_simulation(
 
     # if given strings, convert to indices
     if typeof(genotypestoplot) == Array{String,1}
-        genotypestoplot = [findfirst(ordering, x) for x in genotypestoplot]
+        genotypestoplot = [findfirst(ordering .== x) for x in genotypestoplot]
     end
 
     # sort by first appearance and only display genotypes that appeared
-    firstappearances = [findfirst(trace[:,x]) for x in genotypestoplot]
-    p = sortperm(firstappearances)
-    genotypestoplot = genotypestoplot[p]
-    genotypestoplot = genotypestoplot[length(genotypestoplot)-length(find(firstappearances))+1:length(genotypestoplot)]
+    #firstappearances = [findfirst(x -> x != 0, trace[:,x]) for x in genotypestoplot]
+    #p = sortperm(firstappearances)
+    #genotypestoplot = genotypestoplot[p]
+    #genotypestoplot = genotypestoplot[length(genotypestoplot)-length(find(firstappearances))+1:length(genotypestoplot)]
 
     data = [trace[:,n] for n in genotypestoplot]
 
