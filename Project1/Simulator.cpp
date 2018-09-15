@@ -150,7 +150,7 @@ bool Simulator::saveTrace(const string &filename)
 	return true;
 }
 
-vector<string> Simulator::getGenotypeStrings()
+vector<string> Simulator::getGenotypeStrings() const
 {
 	vector<string> genotypes;
 	for (int g = 0; g < m_genotypes; g++)
@@ -171,4 +171,24 @@ int Simulator::genotypeStringToInt(const string &s)
 		if (s[i] == '1')
 			g |= 1u << (sz - i - 1);
 	return g;
+}
+
+const vector<vector<int64_t>>& Simulator::getTrace() const
+{
+	return m_trace;
+}
+
+void Simulator::resetTrace()
+{
+	m_trace.clear();
+}
+
+int Simulator::getNumLoci() const
+{
+	return m_loci;
+}
+
+int Simulator::getNumGenotypes() const
+{
+	return m_genotypes;
 }

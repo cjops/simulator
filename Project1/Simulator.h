@@ -14,6 +14,8 @@ const double	DEFAULT_PROB_MUT	= 1.0e-8;
 const int64_t	DEFAULT_CARR_CAP	= 1000000000;
 const int		DEFAULT_TIMESTEPS	= 1200;
 
+
+
 class Simulator
 {
 public:
@@ -32,12 +34,16 @@ public:
 	double drand();
 	int lrand();
 	int poisson(double mu);
-	std::vector<std::string> getGenotypeStrings();
+	std::vector<std::string> getGenotypeStrings() const;
 	int genotypeStringToInt(const std::string &s);
 	bool setPopulation(const std::vector<int64_t> &population);
 	bool setPopulation(int seedGen);
 	bool setPopulation(const std::string &seedGen);
 	bool setLandscape(const std::vector<double> &landscape);
+	const std::vector<std::vector<int64_t>>& getTrace() const;
+	void resetTrace();
+	int getNumLoci() const;
+	int getNumGenotypes() const;
 private:
 	const int m_loci;
 	const int m_genotypes;
