@@ -4,7 +4,7 @@
 #include <numpy/arrayobject.h>
 #include <iostream>
 #include <chrono>
-#include "Simulator.h"
+#include "simulator.h"
 
 using namespace std;
 
