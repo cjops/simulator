@@ -45,73 +45,77 @@ simulator_run_simple(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-simulator_parrot(PyObject *self, PyObject *args, PyObject *keywds)
+simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds, bool switching=false)
 {
-    int voltage;
-    const char *state = "a stiff";
-    const char *action = "voom";
-    const char *type = "Norwegian Blue";
-
-    static char *kwlist[] = {"voltage", "state", "action", "type", NULL};
-
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "i|sss", kwlist,
-                                     &voltage, &state, &action, &type))
-        return NULL;
-
-    printf("-- This parrot wouldn't %s if you put %i Volts through it.\n",
-           action, voltage);
-    printf("-- Lovely plumage, the %s -- It's %s!\n", type, state);
-
-    Py_RETURN_NONE;
-}
-
-static PyObject *
-simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
-{
-	PyObject* landscape;
-	int numLoci;
+	PyObject* landscapeObj;
     int timesteps = DEFAULT_TIMESTEPS;
-    PyObject* population = nullptr;
-    PyObject* seed = nullptr;
+    PyObject* populationObj = nullptr;
+    PyObject* seedObj = nullptr;
     double	probMut = DEFAULT_PROB_MUT;
 	int64_t carrCap = DEFAULT_CARR_CAP;
 
-    static char* kwlist[] = {"landscape", "timesteps", "starting_population", "seed", "prob_mutation", "carrying_cap", NULL};
+    static char* kwlist[] = {"landscape", "timesteps", "starting_population", "seed",
+                             "prob_mutation", "carrying_cap", NULL};
 
     if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|iOOdL", kwlist,
-                                     &landscape, &timesteps, &population, &seed, &probMut, &carrCap))
+                                     &landscapeObj, &timesteps, &populationObj, &seedObj,
+                                     &probMut, &carrCap))
         return NULL;
 	
-	if (PyList_Check(landscape))
+	Py_ssize_t numGenotypes;
+	int numLoci;
+	
+	if (PyList_Check(landscapeObj))
 	{
-		Py_ssize_t numGenotypes = PyList_Size(landscape);
+		numGenotypes = PyList_Size(landscapeObj);
 		if (numGenotypes == 0)
 			return NULL;
 		numLoci = static_cast<int>(ceil(log2(numGenotypes)));
 	}
 	else
 		return NULL;
-		
-	if (population)
+	
+	vector<double> landscape(numGenotypes);
+	
+	for (Py_ssize_t i = 0; i < numGenotypes; i++)
+		landscape[i] = PyFloat_AsDouble(PyList_GetItem(landscapeObj, i));
+	
+	Simulator sim(numLoci);
+	
+	if (populationObj)
 	{
-		cout << "you passed an object for starting pop" << endl;
-		
+		vector<int64_t> population(numGenotypes);
+
+		for (Py_ssize_t i = 0; i < numGenotypes; i++)
+			population[i] = PyLong_AsLongLong(PyList_GetItem(populationObj, i));
+
+		sim.setPopulation(population);
 	}
-	else if (seed)
-		cout << "you passed a seed" << endl;
+	else if (seedObj)
+	{
+		if (PyLong_Check(seedObj))
+		{
+			int seed = PyLong_AsLong(seedObj);
+			sim.setPopulation(seed);
+		}
+		else if (PyUnicode_Check(seedObj))
+		{
+			const char* seed = PyUnicode_AsUTF8(seedObj);
+			sim.setPopulation(seed);
+		}
+	}
+	
+	sim.setProbMut(probMut);
+	sim.setCarrCap(carrCap);
+	
+	sim.simpleSimulation(landscape, timesteps);
 
-	//cout << Py_TYPE(landscape)->tp_name << endl;
-
-	// set num loci based on size of pyobject
-
-    Py_RETURN_NONE;
+	return getPyTrace(sim);
 }
 
 static PyMethodDef SimulatorMethods[] = {
 	{"run_simple",  simulator_run_simple, METH_VARARGS,
 	 "Run a simple simulation."},
-	 {"parrot", (PyCFunction)simulator_parrot, METH_VARARGS | METH_KEYWORDS,
-     "Print a lovely skit to standard output."},
 	 {"simulate", (PyCFunction)simulator_simulate, METH_VARARGS | METH_KEYWORDS,
      "Print a simulation with many options."},
 	{NULL, NULL, 0, NULL}        /* Sentinel */

@@ -76,7 +76,7 @@ void Simulator::m_growth()
 
 void Simulator::m_mutation()
 {
-	auto &N = m_population; auto &r = m_landscape;
+	auto &N = m_population;
 	vector<int64_t> oldN(N);
 	for (size_t i = 0; i < N.size(); i++)
 	{
@@ -94,7 +94,7 @@ void Simulator::m_mutation()
 
 void Simulator::m_death()
 {
-	auto &N = m_population; auto &r = m_landscape;
+	auto &N = m_population;
 	int64_t sumN = 0;
 	for (size_t i = 0; i < N.size(); i++)
 		sumN += N[i];
@@ -191,4 +191,20 @@ int Simulator::getNumLoci() const
 int Simulator::getNumGenotypes() const
 {
 	return m_genotypes;
+}
+
+bool Simulator::setProbMut(double prob)
+{
+	if (prob > 1 || prob < 0)
+		return false;
+	m_probMut = prob;
+	return true;
+}
+
+bool Simulator::setCarrCap(int64_t cap)
+{
+	if (cap < 0)
+		return false;
+	m_carrCap = cap;
+	return true;
 }

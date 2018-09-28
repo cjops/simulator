@@ -44,6 +44,8 @@ public:
 	void resetTrace();
 	int getNumLoci() const;
 	int getNumGenotypes() const;
+	bool setProbMut(double prob);
+	bool setCarrCap(int64_t cap);
 private:
 	const int m_loci;
 	const int m_genotypes;
