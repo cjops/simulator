@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <fstream>
+#include <algorithm>
 
 using namespace std;
 
@@ -116,15 +117,42 @@ void Simulator::m_stepForward()
 	m_death();
 }
 
+void Simulator::m_optimalGenFromCurrPop()
+{
+	m_optimalGenotype = max_element(m_landscape.begin(), m_landscape.end()) - m_landscape.begin();
+}
+
+void Simulator::m_resetCritTimes()
+{
+	fill(m_critTimes, m_critTimes+3, -1);
+}
+
+void Simulator::m_checkCritTimes()
+{
+	if (m_optimalGenotype == -1)
+		return;
+	int timestep = m_trace.size();
+	if (m_critTimes[0] == -1 && m_population[m_optimalGenotype] > 0)
+		m_critTimes[0] = timestep; // first appearance
+	if (m_critTimes[1] == -1 && m_population[m_optimalGenotype] > 0.5 * m_carrCap)
+		m_critTimes[1] = timestep; // dominance
+	if (m_critTimes[2] == -1 && m_population[m_optimalGenotype] > 0.99 * m_carrCap)
+		m_critTimes[2] = timestep; // fixation
+}
+
 vector<int64_t> Simulator::simpleSimulation(int t)
 {
 	if (m_landscape.empty())
 		return {};
+	m_optimalGenFromCurrPop();
+	m_resetCritTimes();
 	m_trace.push_back(m_population);
+	m_checkCritTimes();
 	for (int i = 0; i < t; i++)
 	{
 		m_stepForward();
 		m_trace.push_back(m_population);
+		m_checkCritTimes();
 	}
 	return m_population;
 }
@@ -207,4 +235,9 @@ bool Simulator::setCarrCap(int64_t cap)
 		return false;
 	m_carrCap = cap;
 	return true;
+}
+
+const int* Simulator::getCritTimes() const
+{
+	return m_critTimes;
 }

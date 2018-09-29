@@ -7,14 +7,13 @@
 #include <random>
 #include <chrono>
 
-const unsigned  RANDOM_SEED_VAL		= static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count());
+#define RANDOM_SEED_VAL static_cast<unsigned>(std::chrono::system_clock::now().time_since_epoch().count())
+
 const int		DEFAULT_NUM_LOCI	= 4;
 const int		DEFAULT_SEED_GEN	= 0;
 const double	DEFAULT_PROB_MUT	= 1.0e-8;
 const int64_t	DEFAULT_CARR_CAP	= 1000000000;
 const int		DEFAULT_TIMESTEPS	= 1200;
-
-
 
 class Simulator
 {
@@ -46,6 +45,7 @@ public:
 	int getNumGenotypes() const;
 	bool setProbMut(double prob);
 	bool setCarrCap(int64_t cap);
+	const int* getCritTimes() const;
 private:
 	const int m_loci;
 	const int m_genotypes;
@@ -54,6 +54,11 @@ private:
 	std::vector<double> m_landscape;
 	std::vector<int64_t> m_population;
 	std::vector<std::vector<int64_t>> m_trace;
+	int m_critTimes[3];
+	void m_resetCritTimes();
+	void m_checkCritTimes();
+	int m_optimalGenotype = -1;
+	void m_optimalGenFromCurrPop();
 
 	std::default_random_engine m_generator{ RANDOM_SEED_VAL };
 	std::uniform_real_distribution<double> m_realDist{ 0.0, 1.0 };

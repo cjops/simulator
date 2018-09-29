@@ -109,8 +109,15 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds, bool switch
 	sim.setCarrCap(carrCap);
 	
 	sim.simpleSimulation(landscape, timesteps);
-
-	return getPyTrace(sim);
+	
+	const int* critTimes = sim.getCritTimes();
+	
+	PyObject* results = PyDict_New();
+	PyDict_SetItemString(results, "trace", getPyTrace(sim));
+	PyDict_SetItemString(results, "T_1", Py_BuildValue("i", critTimes[0]));
+	PyDict_SetItemString(results, "T_d", Py_BuildValue("i", critTimes[1]));
+	PyDict_SetItemString(results, "T_f", Py_BuildValue("i", critTimes[2]));
+	return results;
 }
 
 static PyMethodDef SimulatorMethods[] = {
