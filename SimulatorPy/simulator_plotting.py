@@ -28,7 +28,10 @@ def genotype_strings(num):
 def plot_simulation(results, genotypes_to_plot=[], carrying_capacity=9):
     trace = results['trace']
     if not genotypes_to_plot:
-        genotypes_to_plot = genotype_strings(len(trace))
+        genotypes_to_plot = list(
+            set(results['greedy_path']) | set(results['actual_path'])
+        )
+        genotypes_to_plot.sort(key=lambda g: np.argmax(trace[g] > 0))
     y_max = carrying_capacity + 1
     timesteps = len(next(iter(trace.values())))
     #           length of an arbitrary entry from dictionary

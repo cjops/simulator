@@ -33,8 +33,9 @@ public:
 	double drand();
 	int lrand();
 	int poisson(double mu);
+	std::string intToGenotypeString(int i) const;
 	std::vector<std::string> getGenotypeStrings() const;
-	int genotypeStringToInt(const std::string &s);
+	int genotypeStringToInt(const std::string &s) const;
 	bool setPopulation(const std::vector<int64_t> &population);
 	bool setPopulation(int seedGen);
 	bool setPopulation(const std::string &seedGen);
@@ -46,6 +47,8 @@ public:
 	bool setProbMut(double prob);
 	bool setCarrCap(int64_t cap);
 	const int* getCritTimes() const;
+	std::vector<int> getActualPath() const;
+	std::vector<int> getGreedyPath() const;
 private:
 	const int m_loci;
 	const int m_genotypes;
@@ -58,7 +61,13 @@ private:
 	void m_resetCritTimes();
 	void m_checkCritTimes();
 	int m_optimalGenotype = -1;
-	void m_optimalGenFromCurrPop();
+	void m_setOptimalGenotype();
+	std::vector<int> m_path;
+	std::vector<int> m_greedyPath;
+	void m_setGreedyPath();
+	std::vector<int> m_firstAppearances;
+	void m_resetFirstAppearances();
+	void m_setActualPath();
 
 	std::default_random_engine m_generator{ RANDOM_SEED_VAL };
 	std::uniform_real_distribution<double> m_realDist{ 0.0, 1.0 };

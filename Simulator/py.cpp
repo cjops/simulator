@@ -111,12 +111,31 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds, bool switch
 	sim.simpleSimulation(landscape, timesteps);
 	
 	const int* critTimes = sim.getCritTimes();
-	
+	vector<int> greedyPath = sim.getGreedyPath();
+	vector<int> actualPath = sim.getActualPath();
+		
 	PyObject* results = PyDict_New();
 	PyDict_SetItemString(results, "trace", getPyTrace(sim));
 	PyDict_SetItemString(results, "T_1", Py_BuildValue("i", critTimes[0]));
 	PyDict_SetItemString(results, "T_d", Py_BuildValue("i", critTimes[1]));
 	PyDict_SetItemString(results, "T_f", Py_BuildValue("i", critTimes[2]));
+	
+	PyObject* greedy = PyList_New(greedyPath.size());
+	for (size_t i = 0; i < greedyPath.size(); i++)
+	{
+		string item = sim.intToGenotypeString(greedyPath[i]);
+		PyList_SetItem(greedy, i, Py_BuildValue("s", item.c_str()));
+	}
+	PyDict_SetItemString(results, "greedy_path", greedy);
+	
+	PyObject* actual = PyList_New(actualPath.size());
+	for (size_t i = 0; i < actualPath.size(); i++)
+	{
+		string item = sim.intToGenotypeString(actualPath[i]);
+		PyList_SetItem(actual, i, Py_BuildValue("s", item.c_str()));
+	}
+	PyDict_SetItemString(results, "actual_path", actual);
+	
 	return results;
 }
 

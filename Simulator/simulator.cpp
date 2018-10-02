@@ -3,6 +3,7 @@
 #include <cmath>
 #include <fstream>
 #include <algorithm>
+#include <iostream>
 
 using namespace std;
 
@@ -87,6 +88,8 @@ void Simulator::m_mutation()
 		{
 			unsigned locus = lrand();
 			size_t mutant = static_cast<unsigned>(i) ^ 1u << (locus - 1);
+			if (m_firstAppearances[mutant] == -1)
+				m_firstAppearances[mutant] = i;
 			N[mutant]++;
 		}
 		N[i] -= numMutants;
@@ -117,7 +120,7 @@ void Simulator::m_stepForward()
 	m_death();
 }
 
-void Simulator::m_optimalGenFromCurrPop()
+void Simulator::m_setOptimalGenotype()
 {
 	m_optimalGenotype = max_element(m_landscape.begin(), m_landscape.end()) - m_landscape.begin();
 }
@@ -140,12 +143,20 @@ void Simulator::m_checkCritTimes()
 		m_critTimes[2] = timestep; // fixation
 }
 
+void Simulator::m_resetFirstAppearances()
+{
+	vector<int> v(m_genotypes, -1);
+	m_firstAppearances = v;
+}
+
 vector<int64_t> Simulator::simpleSimulation(int t)
 {
 	if (m_landscape.empty())
 		return {};
-	m_optimalGenFromCurrPop();
+	m_setOptimalGenotype();
 	m_resetCritTimes();
+	m_resetFirstAppearances();
+	m_setGreedyPath();
 	m_trace.push_back(m_population);
 	m_checkCritTimes();
 	for (int i = 0; i < t; i++)
@@ -154,6 +165,7 @@ vector<int64_t> Simulator::simpleSimulation(int t)
 		m_trace.push_back(m_population);
 		m_checkCritTimes();
 	}
+	m_setActualPath();
 	return m_population;
 }
 
@@ -178,20 +190,23 @@ bool Simulator::saveTrace(const string &filename)
 	return true;
 }
 
+string Simulator::intToGenotypeString(int g) const
+{
+	string s;
+	for (int i = m_loci - 1; i >= 0; i--)
+		(g & (1u << i)) ? s.push_back('1') : s.push_back('0');
+	return s;
+}
+
 vector<string> Simulator::getGenotypeStrings() const
 {
 	vector<string> genotypes;
 	for (int g = 0; g < m_genotypes; g++)
-	{
-		string s;
-		for (int i = m_loci - 1; i >= 0; i--)
-			(g & (1u << i)) ? s.push_back('1') : s.push_back('0');
-		genotypes.push_back(s);
-	}
+		genotypes.push_back(intToGenotypeString(g));
 	return genotypes;
 }
 
-int Simulator::genotypeStringToInt(const string &s)
+int Simulator::genotypeStringToInt(const string &s) const
 {
 	unsigned g = 0;
 	unsigned sz = static_cast<unsigned>(s.size());
@@ -240,4 +255,76 @@ bool Simulator::setCarrCap(int64_t cap)
 const int* Simulator::getCritTimes() const
 {
 	return m_critTimes;
+}
+
+void Simulator::m_setGreedyPath()
+{
+	if (m_optimalGenotype == -1)
+		return;
+	
+	vector<int> path;
+	double maxRate = 0.0;
+	int g = 0;
+	
+	// start from genotype of nonzero abundance w/ highest growth rate
+	// (most likely the seed)
+	for (size_t i = 0; i < m_population.size(); i++)
+	{
+		if (m_population[i] > 0 && m_landscape[i] > maxRate)
+		{
+			maxRate = m_landscape[i];
+			g = i;
+		}
+	}
+	path.push_back(g);
+
+	while (g != m_optimalGenotype)
+	{
+		if (path.size() > m_loci * 2)
+			return; // avoid infinite loops
+		maxRate = 0.0;
+		for (int locus = 0; locus < m_loci; locus++)
+		{
+			int neighbor = static_cast<unsigned>(path.back()) ^ 1u << (locus);
+			if (m_landscape[neighbor] > maxRate)
+			{
+				maxRate = m_landscape[neighbor];
+				g = neighbor;
+			}
+		}
+		if (m_landscape[g] < m_landscape[path.back()])
+			break; // we may not reach the global optimum
+		path.push_back(g);
+	}
+	
+	m_greedyPath = path;
+}
+
+void Simulator::m_setActualPath()
+{
+	vector<int> path;
+	// start from most abundant genotype (most likely global optimum)
+	int g = max_element(m_population.begin(), m_population.end()) - m_population.begin();
+	path.push_back(g);
+	while (g != -1)
+	{
+		if (path.size() > m_loci * 2)
+			return; // avoid infinite loops
+		g = m_firstAppearances[g];
+		if (find(path.begin(), path.end(), g) != path.end())
+			break; // we may not reach the seed
+		path.push_back(g);
+	}
+	reverse(path.begin(), path.end());
+	m_path = path;
+}
+
+vector<int> Simulator::getActualPath() const
+{
+	return m_path;
+}
+
+vector<int> Simulator::getGreedyPath() const
+{
+	return m_greedyPath;
 }
