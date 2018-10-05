@@ -49,14 +49,15 @@ def plot_simulation(results, genotypes_to_plot=[], carrying_capacity=9):
 
     # vertical lines
     for crit in ['T_1', 'T_d', 'T_f']:
-        data.append(go.Scatter(
-            x=[results[crit], results[crit]],
-            y=[0, 10**y_max],
-            line=dict(color='black', width=1),
-            name = crit,
-            mode = 'lines',
-            showlegend = False
-        ))
+        if results[crit] != -1:
+            data.append(go.Scatter(
+                x=[results[crit], results[crit]],
+                y=[0, 10**y_max],
+                line=dict(color='black', width=1),
+                name = crit,
+                mode = 'lines',
+                showlegend = False
+            ))
 
     # vertical line annotations
     vlines = []
@@ -64,15 +65,16 @@ def plot_simulation(results, genotypes_to_plot=[], carrying_capacity=9):
                           ['<i>T</i><sub>1</sub>',
                            '<i>T</i><sub>d</sub>',
                            '<i>T</i><sub>f</sub>']):
-        vlines.append(dict(
-            x=results[crit],
-            y=y_max*.975,
-            xref='x',
-            yref='y',
-            text=text,
-            showarrow=False,
-            xanchor='left'
-        ))
+        if results[crit] != -1:
+            vlines.append(dict(
+                x=results[crit],
+                y=y_max*.975,
+                xref='x',
+                yref='y',
+                text=text,
+                showarrow=False,
+                xanchor='left'
+            ))
         
     # layout
     layout = go.Layout(

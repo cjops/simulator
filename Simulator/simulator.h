@@ -15,6 +15,8 @@ const double	DEFAULT_PROB_MUT	= 1.0e-8;
 const int64_t	DEFAULT_CARR_CAP	= 1000000000;
 const int		DEFAULT_TIMESTEPS	= 1200;
 
+typedef std::vector<std::pair<int, std::vector<double>>> switchingScheme;
+
 class Simulator
 {
 public:
@@ -29,6 +31,7 @@ public:
 		int t = DEFAULT_TIMESTEPS
 	);
 	std::vector<int64_t> simpleSimulation(int t = DEFAULT_TIMESTEPS);
+	std::vector<int64_t> switchingSimulation(const switchingScheme &scheme, int opt=-1);
 	bool saveTrace(const std::string &filename);
 	double drand();
 	int lrand();

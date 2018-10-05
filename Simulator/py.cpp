@@ -45,7 +45,7 @@ simulator_run_simple(PyObject *self, PyObject *args)
 }
 
 static PyObject *
-simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds, bool switching=false)
+simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 {
 	PyObject* landscapeObj;
     int timesteps = DEFAULT_TIMESTEPS;
@@ -53,34 +53,82 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds, bool switch
     PyObject* seedObj = nullptr;
     double	probMut = DEFAULT_PROB_MUT;
 	int64_t carrCap = DEFAULT_CARR_CAP;
+	PyObject* durationsObj = nullptr;
+	int frequency = -1;
 
-    static char* kwlist[] = {"landscape", "timesteps", "starting_population", "seed",
-                             "prob_mutation", "carrying_cap", NULL};
+    static char* kwlist[] = {"landscapes", "timesteps", "starting_population", "seed",
+                             "prob_mutation", "carrying_cap", "durations", "frequency", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|iOOdL", kwlist,
+    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|iOOdLOi", kwlist,
                                      &landscapeObj, &timesteps, &populationObj, &seedObj,
-                                     &probMut, &carrCap))
+                                     &probMut, &carrCap, &durationsObj, &frequency))
         return NULL;
+	
+	// interpret landscape(s)
 	
 	Py_ssize_t numGenotypes;
 	int numLoci;
+	Py_ssize_t numLandscapes;
+	bool switching;
+	vector<double> landscape;
+	switchingScheme scheme;
 	
-	if (PyList_Check(landscapeObj))
-	{
+	if (!PyList_Check(landscapeObj) || PyList_Size(landscapeObj) == 0)
+		return NULL;
+	PyObject* firstItem = PyList_GetItem(landscapeObj, 0);
+	if (PyList_Check(firstItem) && PyList_Size(landscapeObj) > 1)
+	{ 	// multiple landscapes within a list
+		switching = true;
+		numGenotypes = PyList_Size(firstItem);
+		numLoci = static_cast<int>(ceil(log2(numGenotypes)));
+		numLandscapes = PyList_Size(landscapeObj);
+		if (durationsObj && PyList_Size(durationsObj) == numLandscapes)
+		{
+			for (int i = 0; i < numLandscapes; i++)
+			{
+				PyObject* ls = PyList_GetItem(landscapeObj, i);
+				cout << "landscape" << i << endl;
+				int duration = PyLong_AsLong(PyList_GetItem(durationsObj, i));
+				vector<double> landscape(numGenotypes);
+				for (Py_ssize_t j = 0; j < numGenotypes; j++)
+				{
+					cout << PyFloat_AsDouble(PyList_GetItem(ls, j)) << " ";
+					landscape[j] = PyFloat_AsDouble(PyList_GetItem(ls, j));
+				}
+				cout << endl;
+				for (auto val : landscape)
+					cout << val << " ";
+				cout << endl;
+				scheme.push_back({duration, {landscape}});
+			}
+		}
+		else if (frequency != -1)
+		{
+			// to be implemented later
+			return NULL;
+		}
+		else
+			return NULL;
+	}
+	else
+	{	// a single landscape
+		switching = false;
+		if (PyList_Check(firstItem)) // single landscape within a list
+			landscapeObj = firstItem;
+			
 		numGenotypes = PyList_Size(landscapeObj);
 		if (numGenotypes == 0)
 			return NULL;
 		numLoci = static_cast<int>(ceil(log2(numGenotypes)));
+		landscape.resize(numGenotypes);
+		for (Py_ssize_t i = 0; i < numGenotypes; i++)
+			landscape[i] = PyFloat_AsDouble(PyList_GetItem(landscapeObj, i));
 	}
-	else
-		return NULL;
-	
-	vector<double> landscape(numGenotypes);
-	
-	for (Py_ssize_t i = 0; i < numGenotypes; i++)
-		landscape[i] = PyFloat_AsDouble(PyList_GetItem(landscapeObj, i));
-	
+		
+	// initialize simulator object
 	Simulator sim(numLoci);
+	
+	// interpret starting population
 	
 	if (populationObj)
 	{
@@ -105,10 +153,18 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds, bool switch
 		}
 	}
 	
+	// set constants
+	
 	sim.setProbMut(probMut);
 	sim.setCarrCap(carrCap);
 	
-	sim.simpleSimulation(landscape, timesteps);
+	// run simulation
+	if (switching == true)
+		sim.switchingSimulation(scheme);
+	else
+		sim.simpleSimulation(landscape, timesteps);
+	
+	// build results object
 	
 	const int* critTimes = sim.getCritTimes();
 	vector<int> greedyPath = sim.getGreedyPath();

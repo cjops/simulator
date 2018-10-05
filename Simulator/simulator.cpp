@@ -169,6 +169,36 @@ vector<int64_t> Simulator::simpleSimulation(int t)
 	return m_population;
 }
 
+vector<int64_t> Simulator::switchingSimulation(const switchingScheme &scheme, int opt)
+{
+	if (scheme.empty() || !setLandscape(scheme[0].second))
+		return {};
+	if (opt == -1)
+		m_setOptimalGenotype();
+	else
+		m_optimalGenotype = opt;
+	m_resetCritTimes();
+	m_resetFirstAppearances();
+	m_setGreedyPath();
+	m_trace.push_back(m_population);
+	m_checkCritTimes();
+	for (auto const &iter : scheme)
+	{
+		for (auto val : iter.second)
+			cout << val << " ";
+		cout << endl;
+		setLandscape(iter.second);
+		for (int i = 0; i < iter.first; i++)
+		{
+			m_stepForward();
+			m_trace.push_back(m_population);
+			m_checkCritTimes();
+		}
+	}
+	m_setActualPath();
+	return m_population;
+}
+
 bool Simulator::saveTrace(const string &filename)
 {
 	ofstream fs(filename);
