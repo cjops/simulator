@@ -184,9 +184,6 @@ vector<int64_t> Simulator::switchingSimulation(const switchingScheme &scheme, in
 	m_checkCritTimes();
 	for (auto const &iter : scheme)
 	{
-		for (auto val : iter.second)
-			cout << val << " ";
-		cout << endl;
 		setLandscape(iter.second);
 		for (int i = 0; i < iter.first; i++)
 		{

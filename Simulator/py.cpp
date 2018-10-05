@@ -77,7 +77,7 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 		return NULL;
 	PyObject* firstItem = PyList_GetItem(landscapeObj, 0);
 	if (PyList_Check(firstItem) && PyList_Size(landscapeObj) > 1)
-	{ 	// multiple landscapes within a list
+	{ 	// multiple landscapes within a list, durations give
 		switching = true;
 		numGenotypes = PyList_Size(firstItem);
 		numLoci = static_cast<int>(ceil(log2(numGenotypes)));
@@ -87,25 +87,32 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 			for (int i = 0; i < numLandscapes; i++)
 			{
 				PyObject* ls = PyList_GetItem(landscapeObj, i);
-				cout << "landscape" << i << endl;
 				int duration = PyLong_AsLong(PyList_GetItem(durationsObj, i));
 				vector<double> landscape(numGenotypes);
 				for (Py_ssize_t j = 0; j < numGenotypes; j++)
-				{
-					cout << PyFloat_AsDouble(PyList_GetItem(ls, j)) << " ";
 					landscape[j] = PyFloat_AsDouble(PyList_GetItem(ls, j));
-				}
-				cout << endl;
-				for (auto val : landscape)
-					cout << val << " ";
-				cout << endl;
 				scheme.push_back({duration, {landscape}});
 			}
 		}
 		else if (frequency != -1)
-		{
-			// to be implemented later
-			return NULL;
+		{   // cycle through the landscapes at a certain frequency
+			switching = true;
+			numGenotypes = PyList_Size(firstItem);
+			numLoci = static_cast<int>(ceil(log2(numGenotypes)));
+			numLandscapes = PyList_Size(landscapeObj);
+			int totalTimestepCount = frequency;
+			Py_ssize_t i = 0;
+			while (totalTimestepCount <= timesteps)
+			{
+				PyObject* ls = PyList_GetItem(landscapeObj, i);
+				vector<double> landscape(numGenotypes);
+				for (Py_ssize_t j = 0; j < numGenotypes; j++)
+					landscape[j] = PyFloat_AsDouble(PyList_GetItem(ls, j));
+				scheme.push_back({frequency, {landscape}});
+				totalTimestepCount += frequency;
+				if (++i == numLandscapes)
+					i = 0;
+			}
 		}
 		else
 			return NULL;
