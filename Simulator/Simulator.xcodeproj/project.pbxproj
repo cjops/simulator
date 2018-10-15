@@ -9,7 +9,7 @@
 /* Begin PBXFileReference section */
 		BDBD3EA22171D5EB0097A9A7 /* Simulator */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Simulator; sourceTree = BUILT_PRODUCTS_DIR; };
 		BDBD3EAC2171D6D70097A9A7 /* simulator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = simulator.h; sourceTree = "<group>"; };
-		BDBD3EAD2171D6D70097A9A7 /* py.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = py.cpp; sourceTree = "<group>"; };
+		BDBD3EAD2171D6D70097A9A7 /* py.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = py.cpp; sourceTree = "<group>"; wrapsLines = 1; };
 		BDBD3EAE2171D6D70097A9A7 /* setup.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; path = setup.py; sourceTree = "<group>"; };
 		BDBD3EAF2171D6D70097A9A7 /* simulator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = simulator.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */

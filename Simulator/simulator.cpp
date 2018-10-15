@@ -320,7 +320,7 @@ void Simulator::m_setGreedyPath()
 			}
 		}
 		if (m_landscape[g] < m_landscape[path.back()])
-			break; // we may not reach the global optimum
+			break; // we have reached a local optimum
 		path.push_back(g);
 	}
 	
