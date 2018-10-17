@@ -133,8 +133,9 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 	}
 		
 	// initialize simulator object
-	Simulator sim(numLoci);
-	
+
+    Simulator sim(numLoci, DEFAULT_SEED_GEN, probMut, carrCap);
+	    
 	// interpret starting population
 	
 	if (populationObj)
@@ -159,11 +160,6 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 			sim.setPopulation(seed);
 		}
 	}
-	
-	// set constants
-	
-	sim.setProbMut(probMut);
-	sim.setCarrCap(carrCap);
 	
 	// run simulation
 	if (switching == true)
@@ -199,6 +195,8 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 	}
 	PyDict_SetItemString(results, "actual_path", actual);
 	
+    PyDict_SetItemString(results, "num_loci", Py_BuildValue("i", numLoci));
+    
 	return results;
 }
 
