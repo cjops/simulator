@@ -65,7 +65,8 @@ void Simulator::m_growth()
 	for (size_t i = 0; i < N.size(); i++)
 	{
 		double newSize = floor(N[i] * exp(r[i]));
-		if (newSize > 0.0)
+		if (newSize >= 0.0) // a negative growth rate might result in a negative
+                            // size which we must avoid
 		{
 			if (drand() < (N[i] * exp(r[i])) - newSize)
 				newSize++;
@@ -86,8 +87,8 @@ void Simulator::m_mutation()
 		int numMutants = poisson(avgNumMutants);
 		for (int m = 0; m < numMutants; m++)
 		{
-			unsigned locus = lrand();
-			size_t mutant = static_cast<unsigned>(i) ^ 1u << (locus - 1);
+			unsigned locus = lrand() - 1;
+			size_t mutant = static_cast<unsigned>(i) ^ 1u << locus;
 			if (m_firstAppearances[mutant] == -1)
 				m_firstAppearances[mutant] = i;
 			N[mutant]++;
@@ -107,7 +108,7 @@ void Simulator::m_death()
 	{
 		double freq = static_cast<double>(N[i]) / sumN;
 		double newSize = floor(freq * m_carrCap);
-		if (newSize > 0.0 && drand() < (freq * m_carrCap) - newSize)
+		if (newSize >= 0.0 && drand() < (freq * m_carrCap) - newSize)
 			newSize++;
 		N[i] = static_cast<int64_t>(newSize);
 	}

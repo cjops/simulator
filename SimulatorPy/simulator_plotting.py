@@ -102,3 +102,31 @@ def plot_simulation(results, genotypes_to_plot=[], carrying_capacity=9):
 #landscape = dataset1[2].loc['53.60μM'].tolist()
 #results = simulate(landscape, timesteps=2000)
 #plot_simulation(results, ["0000", "0010", "0110", "1110"])
+
+def plot_path(path, num_genotypes):
+    g = ig.Graph()
+    g.add_vertices(num_genotypes)
+    g.vs["name"] = genotype_strings(num_genotypes)
+
+    for gen in range(num_genotypes):
+        neighbors = [gen ^ 1 << i for i in range(4)]
+        for n in neighbors:
+            if not g.are_connected(gen, n):
+                g.add_edge(gen, n)
+
+    g.es["on_path"] = False
+    for i, gen in enumerate(path[:-1]):
+        e = g.get_eid(g.vs.find(gen), g.vs.find(path[i+1]))
+        g.es[e]["on_path"] = True
+
+    visual_style = {
+        'layout': g.layout("rt"),
+        'vertex_label': g.vs["name"],
+        'bbox': (300,300),
+        'vertex_size': 30,
+        'vertex_label_size': 10,
+        'vertex_color': "Powder Blue",
+        'edge_width': [1 + 2 * int(on_path) for on_path in g.es["on_path"]]
+    }
+    layout = g.layout("rt")
+    return ig.plot(g, **visual_style)
