@@ -108,7 +108,7 @@ void Simulator::m_death()
 	{
 		double freq = static_cast<double>(N[i]) / sumN;
 		double newSize = floor(freq * m_carrCap);
-		if (newSize >= 0.0 && drand() < (freq * m_carrCap) - newSize)
+		if (drand() < (freq * m_carrCap) - newSize)
 			newSize++;
 		N[i] = static_cast<int64_t>(newSize);
 	}
