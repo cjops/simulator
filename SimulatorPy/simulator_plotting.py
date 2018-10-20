@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+#import igraph as ig
 
 from plotly.offline import plot, iplot
 import plotly.graph_objs as go
@@ -88,8 +89,8 @@ def plot_simulation(results, genotypes_to_plot=[], carrying_capacity=9):
             title='Abundance of each genotype',
             tickfont=dict(size=10)
         ),
-        width=750,
-        height=500,
+        width=750, #600
+        height=500, #400
         margin=dict(t=30, b=50),
         annotations=vlines
     )

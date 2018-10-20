@@ -66,7 +66,7 @@ void Simulator::m_growth()
 	{
 		double newSize = floor(N[i] * exp(r[i]));
 		if (newSize >= 0.0) // a negative growth rate might result in a negative
-                            // size which we must avoid
+							// size which we must avoid
 		{
 			if (drand() < (N[i] * exp(r[i])) - newSize)
 				newSize++;

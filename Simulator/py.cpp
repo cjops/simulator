@@ -48,21 +48,21 @@ static PyObject *
 simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 {
 	PyObject* landscapeObj;
-    int timesteps = DEFAULT_TIMESTEPS;
-    PyObject* populationObj = nullptr;
-    PyObject* seedObj = nullptr;
-    double	probMut = DEFAULT_PROB_MUT;
+	int timesteps = DEFAULT_TIMESTEPS;
+	PyObject* populationObj = nullptr;
+	PyObject* seedObj = nullptr;
+	double	probMut = DEFAULT_PROB_MUT;
 	int64_t carrCap = DEFAULT_CARR_CAP;
 	PyObject* durationsObj = nullptr;
 	int frequency = -1;
 
-    static char* kwlist[] = {"landscapes", "timesteps", "starting_population", "seed",
-                             "prob_mutation", "carrying_cap", "durations", "frequency", NULL};
+	const char* kwlist[] = {"landscapes", "timesteps", "starting_population", "seed",
+							"prob_mutation", "carrying_cap", "durations", "frequency", NULL};
 
-    if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|iOOdLOi", kwlist,
-                                     &landscapeObj, &timesteps, &populationObj, &seedObj,
-                                     &probMut, &carrCap, &durationsObj, &frequency))
-        return NULL;
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "O|iOOdLOi", const_cast<char **>(kwlist),
+									 &landscapeObj, &timesteps, &populationObj, &seedObj,
+									 &probMut, &carrCap, &durationsObj, &frequency))
+		return NULL;
 	
 	// interpret landscape(s)
 	
@@ -134,8 +134,8 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 		
 	// initialize simulator object
 
-    Simulator sim(numLoci, DEFAULT_SEED_GEN, probMut, carrCap);
-	    
+	Simulator sim(numLoci, DEFAULT_SEED_GEN, probMut, carrCap);
+		
 	// interpret starting population
 	
 	if (populationObj)
@@ -195,8 +195,8 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 	}
 	PyDict_SetItemString(results, "actual_path", actual);
 	
-    PyDict_SetItemString(results, "num_loci", Py_BuildValue("i", numLoci));
-    
+	PyDict_SetItemString(results, "num_loci", Py_BuildValue("i", numLoci));
+	
 	return results;
 }
 
@@ -204,7 +204,7 @@ static PyMethodDef SimulatorMethods[] = {
 	{"run_simple",  simulator_run_simple, METH_VARARGS,
 	 "Run a simple simulation."},
 	 {"simulate", (PyCFunction)simulator_simulate, METH_VARARGS | METH_KEYWORDS,
-     "Print a simulation with many options."},
+	 "Print a simulation with many options."},
 	{NULL, NULL, 0, NULL}        /* Sentinel */
 };
 
