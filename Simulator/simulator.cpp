@@ -148,6 +148,11 @@ void Simulator::m_resetFirstAppearances()
 {
 	vector<int> v(m_genotypes, -1);
 	m_firstAppearances = v;
+    for (int i = 0; i < m_population.size(); i++)
+    {
+        if (m_population[i] > 0)
+            m_firstAppearances[i] = -2;
+    }
 }
 
 vector<int64_t> Simulator::simpleSimulation(int t)
@@ -334,14 +339,15 @@ void Simulator::m_setActualPath()
 	// start from most abundant genotype (most likely global optimum)
 	int g = max_element(m_population.begin(), m_population.end()) - m_population.begin();
 	path.push_back(g);
-	while (g != -1)
+    g = m_firstAppearances[g];
+	while (g != -1 && g != -2)
 	{
 		if (path.size() > m_loci * 2)
 			return; // avoid infinite loops
-		g = m_firstAppearances[g];
 		if (find(path.begin(), path.end(), g) != path.end())
 			break; // we may not reach the seed
 		path.push_back(g);
+        g = m_firstAppearances[g];
 	}
 	reverse(path.begin(), path.end());
 	m_path = path;
