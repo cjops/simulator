@@ -1,0 +1,1 @@
+"P. vivax treated with 53.60uM pyrimethamine at K=10^6"

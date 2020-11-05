@@ -52,6 +52,9 @@ public:
 	const int* getCritTimes() const;
 	std::vector<int> getActualPath() const;
 	std::vector<int> getGreedyPath() const;
+    int getOptimal() const;
+    std::vector<int> getLocalOptima() const;
+    std::vector<int> getPhylo() const;
 private:
 	const int m_loci;
 	const int m_genotypes;

@@ -28,6 +28,8 @@ def genotype_strings(num):
 
 def plot_simulation(results, genotypes_to_plot=[], carrying_capacity=9):
     trace = results['trace']
+    if genotypes_to_plot and all(isinstance(x, int) for x in genotypes_to_plot):
+        genotypes_to_plot = ["{0:0>4b}".format(n) for n in genotypes_to_plot]
     if not genotypes_to_plot:
         genotypes_to_plot = list(
             set(results['greedy_path']) | set(results['actual_path'])

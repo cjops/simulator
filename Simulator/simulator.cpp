@@ -362,3 +362,34 @@ vector<int> Simulator::getGreedyPath() const
 {
 	return m_greedyPath;
 }
+
+vector<int> Simulator::getPhylo() const
+{
+	return m_firstAppearances;
+}
+
+int Simulator::getOptimal() const
+{
+    return m_optimalGenotype;
+}
+
+vector<int> Simulator::getLocalOptima() const
+{
+    vector<int> optima;
+    for (int g = 0; g < m_genotypes; g++)
+    {
+        bool localOptimum = true;
+        for (int locus = 0; locus < m_loci; locus++)
+        {
+            int neighbor = static_cast<unsigned>(g) ^ 1u << (locus);
+            if (m_landscape[neighbor] >= m_landscape[g])
+            {
+                localOptimum = false;
+                break;
+            }
+        }
+        if (localOptimum && g != m_optimalGenotype)
+            optima.push_back(g);
+    }
+    return optima;
+}

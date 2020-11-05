@@ -169,12 +169,18 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 	
 	// build results object
 	
-	const int* critTimes = sim.getCritTimes();
+	const int*  critTimes  = sim.getCritTimes();
 	vector<int> greedyPath = sim.getGreedyPath();
 	vector<int> actualPath = sim.getActualPath();
+    int         globalOpt  = sim.getOptimal();
+    vector<int> localOpt   = sim.getLocalOptima();
+    vector<int> phylogeny  = sim.getPhylo();
 		
-	PyObject* results = PyDict_New();
+	PyObject*   results    = PyDict_New();
+
 	PyDict_SetItemString(results, "trace", getPyTrace(sim));
+    PyDict_SetItemString(results, "num_loci", Py_BuildValue("i", numLoci));
+
 	PyDict_SetItemString(results, "T_1", Py_BuildValue("i", critTimes[0]));
 	PyDict_SetItemString(results, "T_d", Py_BuildValue("i", critTimes[1]));
 	PyDict_SetItemString(results, "T_f", Py_BuildValue("i", critTimes[2]));
@@ -194,9 +200,29 @@ simulator_simulate(PyObject *self, PyObject *args, PyObject *keywds)
 		PyList_SetItem(actual, i, Py_BuildValue("s", item.c_str()));
 	}
 	PyDict_SetItemString(results, "actual_path", actual);
+
+	PyObject* phylo = PyList_New(phylogeny.size());
+	for (size_t i = 0; i < phylogeny.size(); i++)
+	{
+		PyList_SetItem(phylo, i, Py_BuildValue("i", phylogeny[i]));
+	}
+	PyDict_SetItemString(results, "phylogeny", phylo);
 	
-	PyDict_SetItemString(results, "num_loci", Py_BuildValue("i", numLoci));
-	
+    PyObject* optimum;
+    if (globalOpt != -1)
+        optimum = Py_BuildValue("s", sim.intToGenotypeString(globalOpt).c_str());
+    else
+        optimum = Py_BuildValue("s", Py_None);
+    PyDict_SetItemString(results, "global_optimum", optimum);
+
+    PyObject* optima = PyList_New(localOpt.size());
+    for (size_t i = 0; i < localOpt.size(); i++)
+    {
+        string item = sim.intToGenotypeString(localOpt[i]);
+        PyList_SetItem(optima, i, Py_BuildValue("s", item.c_str()));
+    }
+    PyDict_SetItemString(results, "local_optima", optima);
+
 	return results;
 }
 
