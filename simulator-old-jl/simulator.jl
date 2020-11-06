@@ -16,7 +16,7 @@ function get_dataset1()
     dataset = []
     for i = 1:3
         df = CSV.read(
-            "data/table$i.csv",
+            "../data/table$i.csv",
             types=Dict(1=>String),
             allowmissing=:none,
             rows=17)
@@ -29,7 +29,7 @@ end
 
 function get_dataset2()
     barlow = CSV.read(
-        "data/barlow.csv",
+        "../data/barlow.csv",
         allowmissing=:none,
         transpose=true,
         types=Dict(1=>String))
